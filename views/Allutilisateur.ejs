@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <!-- appel bootstrap -->
+     <%- include('partials/bootstrapCN.ejs')%>
+    <title>Utilisateur</title>
+</head>
+<body>
+
+    <%- include('partials/navbar.ejs')%>
+
+    <% data %>
+
+     <h1>Listes des Utilisateur</h1> 
+     
+            <table class="table">
+                
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Nom</th>
+                    <th scope="col">Prenom</th>
+                    <th scope="col">Email</th>
+                    <th scope="col">Service</th>
+                   
+                  </tr>
+                </thead>
+                <tbody>
+                
+                    <% data.forEach((Utilisateur)=>{ %>
+                  <tr>
+                    <th scope="row"><%= Utilisateur.id %> </th>
+                    <td><%= Utilisateur.nom %> </td>
+                    <td><%= Utilisateur.prenom  %> </td>
+                    <td><%= Utilisateur.email %> </td>
+                    <td><%= Utilisateur.service %> </td>
+                    <td><%= Utilisateur.mdp %> </td>
+                    
+                 <td><a href="/utilisateur/<%= Utilisateur.id %>">Edit</a></td>
+                    <td>  <form action="/utilisateur/delete/<%= Utilisateur.id %>?_method=DELETE" method="post">
+                      <input type="hidden" name="_method" value="DELETE">
+                      <input type="submit" value="supprimer" >
+                  </form></td>
+                  </tr>
+                  <% }) %>
+                </tbody> 
+              </table>
+    
+</body>
+</html>

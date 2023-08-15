@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+     <!-- appel bootstrap -->
+     <%- include('partials/bootstrapCN.ejs')%>
+    <title>Demandes</title>
+</head>
+<body>
+
+    <%- include('partials/navbar.ejs')%>
+
+    <% data %>
+
+     <h1>Listes des Demandes </h1> 
+     
+            <table class="table">
+                
+                <thead>
+                  <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Demande</th>
+                    <th scope="col">Demandeur</th>
+                    <th scope="col">Service</th>
+                    <th scope="col">Zone</th>
+                    <th scope="col">Description</th>
+                    <th scope="col">Modifier</th>
+                    <th scope="col">Supprimer</th>
+                  </tr>
+                </thead>
+                <tbody>
+                
+                    <% data.forEach((Demande)=>{ %>
+                  <tr>
+                    <th scope="row"><%= Demande.id %> </th>
+                    <td><%= Demande.demande %> </td>
+                    <td><%= Demande.demandeur  %> </td>
+                    <td><%= Demande.service %> </td>
+                    <td><%= Demande.zone %> </td>
+                    <td><%= Demande.description %> </td>
+                    
+                 <td><a href="/demande/<%= Demande.id %>">Edit</a></td>
+                    <td>  <form action="/demande/delete/<%= Demande.id %>?_method=DELETE" method="post">
+                      <input type="hidden" name="_method" value="DELETE">
+                      <input type="submit" value="supprimer" >
+                  </form></td>
+                  </tr>
+                  <% }) %>
+                </tbody> 
+              </table>
+    
+</body>
+</html>
