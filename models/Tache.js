@@ -10,6 +10,8 @@ const tacheSchema = mongoose.Schema ({
     date_prevue: {type:'date'},
     date_realisation: {type:'date'},
     statut: { type: 'String' },
+    date_prevue_F : {type:'date'},
+    date_realisation_F: {type:'date'},
     statutFabrication: { type: 'String' },
     statutAutomatisation: { type: 'String' },
     photo:{ type: 'String' },

@@ -13,7 +13,7 @@ require('dotenv').config();
 const methodoverride = require('method-override')
 app.use(methodoverride('_method'))
 
-//Brypt : encodage
+//Brypt : hachage
 const bcrypt = require('bcrypt')
 
 //Connexion à la base de données
@@ -30,6 +30,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 
 const Demande = require('./models/Demande');
 const Tache = require('./models/Tache');
+const Utilisateur = require('./models/Utilisateur');
 
 
 
@@ -75,7 +76,7 @@ app.use(cors(corsOptions));
 
 //Multer: pour les images 
 const multer = require('multer');
-const Utilisateur = require('./models/Utilisateur');
+
 app.use(express.static('uploads'));//express.static :pour lire le dossier 'uploads' parce que expresse le connait pas.
 const storage = multer.diskStorage(
   {
@@ -114,7 +115,8 @@ app.post('/upload', upload.single('file'), (req, res) => {
             email: req.body.email,
             service: req.body.service,
             password:  bcrypt.hashSync(req.body.password, 10),
-            imagename:req.body.imagename
+            imagename:req.body.imagename,
+            admin:req.body.admin
         })
         Data.save().then((data) => {
             // console.log("Data saved successfully !");
@@ -126,9 +128,18 @@ app.post('/upload', upload.single('file'), (req, res) => {
 
     app.get('/allutilisateur',validateToken, function (req, res) {
         Utilisateur.find().then((data) => {
+          var base64Url = req.cookies['access-token'].split('.')[1];
+          var personConnected=JSON.parse(atob(base64Url));
             console.log(data);
             // res.render('AllUtilisateur', { data: data });
-            res.json(data);
+            res.json({data:data,
+              nom:personConnected.data.nom ,
+              prenom:personConnected.data.prenom,
+              service:personConnected.data.service,
+              admin:personConnected.data.admin,
+              image:personConnected.data.imagename
+
+           });
         }).catch(err => console.log(err))
     });
 
@@ -185,12 +196,12 @@ app.post('/upload', upload.single('file'), (req, res) => {
         }).then((utilisateur) => {
             if (!utilisateur){
                 // si le Password et correcte et le  Username pas correcte on affiche
-                res.send('NO User found')
+                res.send('Aucun utilisateur trouvé')
             }
             console.log(Utilisateur);
             if (!bcrypt.compareSync(req.body.password,utilisateur.password)) {
                  // si le Username et correcte et le mot pass pas correcte on affiche
-                 res.send("Invalid password!"); 
+                 res.send("Mot de passe incorrect!"); 
             }
             const accessToken = createToken(utilisateur);  
             res.cookie("access-token",accessToken,{
@@ -212,7 +223,7 @@ app.get('/deconnecter', (req, res) => {
 
   // Envoyer une réponse indiquant que l'utilisateur est déconnecté
 //  res.json({ message: 'Utilisateur déconnecté' });
-res.redirect('http://localhost:3000/new-demande') 
+res.redirect('http://localhost:3000/login') 
 });
     
     //...............Page Demande................
@@ -297,7 +308,8 @@ res.redirect('http://localhost:3000/new-demande')
           nom:personConnected.data.nom ,
           prenom:personConnected.data.prenom,
           service:personConnected.data.service,
-          admin:personConnected.data.admin
+          admin:personConnected.data.admin,
+          image:personConnected.data.imagename
        });
 
 
@@ -357,6 +369,33 @@ res.redirect('http://localhost:3000/new-demande')
                 res.json("data updated")
             }).catch(err => console.log(err));
     });
+
+
+    app.put('/demande/editM/:id', upload.single('file'), function (req, res) {
+      console.log("req.body");
+      const Data = ({
+        num_demande: req.body.num_demande, 
+        client: req.body.client,
+        service: req.body.service,
+        num_ligne: req.body.num_ligne,
+        nom_machine: req.body.nom_machine,
+        zone: req.body.zone,
+        degre_urgence: req.body.degre_urgence,
+        description:req.body.description,
+        date_prevue:req.body.date_prevue,
+        statut:req.body.statut,
+        image:req.body.image
+      })
+      console.log("============>"+Data);
+      Demande.updateOne({ _id: req.params.id }, { $set: Data })
+          .then(data => {
+              console.log("Data updated")
+              //res.redirect('/alldemande')
+              res.json("data updated")
+          }).catch(err => console.log(err));
+  });
+  
+
     
    //----------------------Suppression de la demande -------------------------------
     app.delete('/demande/delete/:id', function (req, res) {
@@ -404,10 +443,10 @@ res.redirect('http://localhost:3000/new-demande')
         date_realisation:req.body.date_realisation,
         statut:req.body.service==="Automatisation"? "":req.body.statut,
         statutFabrication:req.body.statutFabrication,
-        statutAutomatisation:req.body.service==="Automatisation"? req.body.statut:req.body.statutAutomatisation,
+        statutAutomatisation:req.body.service==="Automatisation"? req.body.statut:"",
         photo:req.body.service==="Automatisation"? "":req.body.photo,
         photoFabrication:req.body.photoFabrication,
-        photoAutomatisation:req.body.service==="Automatisation"? req.body.photo:req.body.photoAutomatisation,
+        photoAutomatisation:req.body.service==="Automatisation"? req.body.photo:"",
 
 
         //pour la date de creation par l'utilisateur
@@ -434,7 +473,10 @@ res.redirect('http://localhost:3000/new-demande')
         nom:personConnected.data.nom ,
         prenom:personConnected.data.prenom,
         service:personConnected.data.service,
-        admin:personConnected.data.admin
+        admin:personConnected.data.admin,
+        image:personConnected.data.imagename
+        
+
      });
     }).catch(err => console.log(err))
 
@@ -448,7 +490,7 @@ app.get('/alltache/:num_demand',validateToken, function (req, res) {
   var personConnected=JSON.parse(atob(base64Url));
 
   console.log("========jkjkjk=====>"+req.params.num_demand);
-  if(personConnected.data.service=="admin"){
+  if(personConnected.data.service=="admin" || personConnected.data.service=="Assemblage"){
     Tache.find().then((data)=> {
       data=data.filter(e=> req.params.num_demand==e.num_demande);
 
@@ -459,7 +501,8 @@ app.get('/alltache/:num_demand',validateToken, function (req, res) {
         nom:personConnected.data.nom ,
         prenom:personConnected.data.prenom,
         service:personConnected.data.service,
-        admin:personConnected.data.admin
+        admin:personConnected.data.admin,
+        image:personConnected.data.imagename
      });
   
       
@@ -482,7 +525,8 @@ app.get('/alltache/:num_demand',validateToken, function (req, res) {
         nom:personConnected.data.nom ,
         prenom:personConnected.data.prenom,
         service:personConnected.data.service,
-        admin:personConnected.data.admin
+        admin:personConnected.data.admin,
+        image:personConnected.data.imagename
      });
   
       
@@ -505,7 +549,8 @@ app.get('/alltache/:num_demand',validateToken, function (req, res) {
         nom:personConnected.data.nom ,
         prenom:personConnected.data.prenom,
         service:personConnected.data.service,
-        admin:personConnected.data.admin
+        admin:personConnected.data.admin,
+        image:personConnected.data.imagename
      });
   
       
@@ -530,7 +575,8 @@ app.get('/alltache/:num_demand',validateToken, function (req, res) {
         nom:personConnected.data.nom ,
         prenom:personConnected.data.prenom,
         service:personConnected.data.service,
-        admin:personConnected.data.admin
+        admin:personConnected.data.admin,
+        image:personConnected.data.imagename
      });
   
       
@@ -588,6 +634,9 @@ app.put('/tache/edit/:id', upload.single('file'), function (req, res) {
         date_prevue:req.body.date_prevue,
         date_realisation:req.body.date_realisation,
         statut:req.body.statut,
+        
+        date_prevue_F:req.body.date_prevue_F,
+        date_realisation_F:req.body.date_realisation_F,
         statutFabrication:req.body.statutFabrication,
         statutAutomatisation:req.body.statutAutomatisation,
         photo:req.body.photo,
