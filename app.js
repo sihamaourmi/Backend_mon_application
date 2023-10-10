@@ -285,7 +285,7 @@ res.redirect('http://localhost:3000/login')
             Tache.find()
             .then((tache)=> {
               data.forEach(element => {
-                element.indiceFabri=tache.filter(e=>(e.statut=="Terminer" &&
+                element.indiceFabri=tache.filter(e=>(e.statut=="Terminer" && e.statutFabrication!=="Terminer" &&
                 element.num_demande==e.num_demande)).length;
 
                 var allTask=tache.filter(e=>(element.num_demande==e.num_demande));
