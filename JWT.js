@@ -1,3 +1,4 @@
+//jsonwebtoken:est une bibaliotheque javascript utilisée pour créer et verifier des webtokens(JWT) dans les applications web et les services backend 
 const{sign,verify} = require("jsonwebtoken");
 const createToken =(utilisateur) =>{
 const accessToken = sign(
